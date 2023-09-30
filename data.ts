@@ -142,8 +142,6 @@ db_query('SELECT * FROM player', []).then(data => {
     });
     const timestamp:Date = new Date();
     const last_updated:string = timestamp.toLocaleString();
-    // sort players by total fantasy pts
-    players.sort((a, b) => b.stats.totals.fantasy_pts - a.stats.totals.fantasy_pts);
     // sort schedule by date
     schedule.sort((a, b) => (new Date(b.date) as any) - (new Date(a.date) as any));
     const data_obj:data_obj = {

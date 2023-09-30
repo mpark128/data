@@ -119,10 +119,9 @@ db_query('SELECT * FROM player', []).then(function (data) {
     });
     var timestamp = new Date();
     var last_updated = timestamp.toLocaleString();
-    // sort players by total fantasy pts
-    players.sort(function (a, b) { return b.stats.totals.fantasy_pts - a.stats.totals.fantasy_pts; });
     // sort schedule by date
     schedule.sort(function (a, b) { return new Date(b.date) - new Date(a.date); });
+    console.log(players);
     var data_obj = {
         players: players,
         teams: teams,

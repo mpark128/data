@@ -544,5 +544,7 @@ export const get_players = (players:Player[], gamelogs:Gamelog[]):player[] => {
         };
         players_obj.push(player);
     });
+    // sort players by total fantasy pts
+    players_obj.sort((a, b) => b.stats.totals.fantasy_pts - a.stats.totals.fantasy_pts);
     return players_obj;
 };
