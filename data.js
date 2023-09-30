@@ -30,7 +30,8 @@ db_query('SELECT * FROM player', []).then(function (data) {
         var player = new types_1.Player(row.id, row.first_name, row.last_name, row.team_id, row.jsy_number, positions, row.height_inches, row.weight_lbs, row.last_attended, row.country, row.draft_year, row.draft_round, row.draft_number, row.from_year, row.to_year, row.slug);
         players_db.push(player);
     });
-    db_query('SELECT * FROM gamelog', []).then(function (data) {
+    // get gamelogs in descending order
+    db_query('SELECT * FROM gamelog ORDER BY game_id DESC', []).then(function (data) {
         rows = data.rows;
         var gamelogs_db = [];
         rows.forEach(function (row) {
@@ -118,6 +119,10 @@ db_query('SELECT * FROM player', []).then(function (data) {
     });
     var timestamp = new Date();
     var last_updated = timestamp.toLocaleString();
+    // sort players by total fantasy pts
+    players.sort(function (a, b) { return b.stats.totals.fantasy_pts - a.stats.totals.fantasy_pts; });
+    // sort schedule by date
+    schedule.sort(function (a, b) { return new Date(b.date) - new Date(a.date); });
     var data_obj = {
         players: players,
         teams: teams,

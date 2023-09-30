@@ -48,7 +48,8 @@ db_query('SELECT * FROM player', []).then(data => {
         );
         players_db.push(player);
     });
-    db_query('SELECT * FROM gamelog', []).then(data => {
+    // get gamelogs in descending order
+    db_query('SELECT * FROM gamelog ORDER BY game_id DESC', []).then(data => {
         rows = data.rows;
         let gamelogs_db:Gamelog[] = [];
         rows.forEach(row => {
@@ -84,6 +85,7 @@ db_query('SELECT * FROM player', []).then(data => {
             );
             gamelogs_db.push(gamelog);
         });
+
         players = get_players(players_db, gamelogs_db);
     });
     return db_query('SELECT * FROM team', []);
@@ -140,6 +142,10 @@ db_query('SELECT * FROM player', []).then(data => {
     });
     const timestamp:Date = new Date();
     const last_updated:string = timestamp.toLocaleString();
+    // sort players by total fantasy pts
+    players.sort((a, b) => b.stats.totals.fantasy_pts - a.stats.totals.fantasy_pts);
+    // sort schedule by date
+    schedule.sort((a, b) => (new Date(b.date) as any) - (new Date(a.date) as any));
     const data_obj:data_obj = {
         players: players,
         teams: teams,
