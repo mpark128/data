@@ -85,77 +85,73 @@ db_query('SELECT * FROM player', []).then(data => {
             );
             gamelogs_db.push(gamelog);
         });
-
         players = get_players(players_db, gamelogs_db);
-    });
-    return db_query('SELECT * FROM team', []);
-}).then(data => {
-    let rows = data.rows;
-    rows.forEach(row => {
-        let player_ids:number[] = [];
-        players.forEach(p => {
-            if (p.team_id === row.id) {
-                player_ids.push(p.id);
-            }
+        db_query('SELECT * FROM team', []).then(data => {
+            rows = data.rows;
+            rows.forEach(row => {
+                let player_ids:number[] = [];
+                players.forEach(p => {
+                    if (p.team_id === row.id) {
+                        player_ids.push(p.id);
+                    }
+                });
+                const team:team = {
+                    id: row.id,
+                    name: row.name,
+                    city: row.city,
+                    abbreviation: row.abbreviation,
+                    conference: row.conference,
+                    division: row.division,
+                    slug: row.slug,
+                    player_ids: player_ids
+                };
+                teams.push(team);
+            });
+            db_query('SELECT * FROM game', []).then(data => {
+                rows = data.rows;
+                rows.forEach(row => {
+                    const in_seasons:boolean = seasons.some(season => season === row.season);
+                    if (!in_seasons) {
+                        seasons.push(row.season);
+                    }
+                    let home_abb:string = '';
+                    let away_abb:string = '';
+                    teams.forEach(team => {
+                        if (team.id === row.home_id) {
+                            home_abb = team.abbreviation;
+                        } else if (team.id === row.away_id) {
+                            away_abb = team.abbreviation;
+                        }
+                    });
+                    const matchup:string = `${home_abb} vs. ${away_abb}`;
+                    const game:game = {
+                        id: row.id,
+                        season: row.season,
+                        date: row.date,
+                        home_id: row.home_id,
+                        away_id: row.away_id,
+                        home_score: row.home_score,
+                        away_score: row.away_score,
+                        matchup: matchup
+                    }
+                    schedule.push(game);
+                });
+                const timestamp:Date = new Date();
+                const last_updated:string = timestamp.toLocaleString();
+                // sort schedule by date
+                schedule.sort((a, b) => (new Date(b.date) as any) - (new Date(a.date) as any));
+                const data_obj:data_obj = {
+                    players: players,
+                    teams: teams,
+                    schedule: schedule,
+                    meta: {
+                        seasons: seasons,
+                        last_updated: last_updated,
+                        to_date: null
+                    }
+                };
+                write(data_obj, '../static-app/src/postgres_data.json');
+            });
         });
-        const team:team = {
-            id: row.id,
-            name: row.name,
-            city: row.city,
-            abbreviation: row.abbreviation,
-            conference: row.conference,
-            division: row.division,
-            slug: row.slug,
-            player_ids: player_ids
-        };
-        teams.push(team);
     });
-    return db_query('SELECT * FROM game', []);
-}).then(data => {
-    let rows = data.rows;
-    rows.forEach(row => {
-        const in_seasons:boolean = seasons.some(season => season === row.season);
-        if (!in_seasons) {
-            seasons.push(row.season);
-        }
-        let home_abb:string = '';
-        let away_abb:string = '';
-        teams.forEach(team => {
-            if (team.id === row.home_id) {
-                home_abb = team.abbreviation;
-            } else if (team.id === row.away_id) {
-                away_abb = team.abbreviation;
-            }
-        });
-        const matchup:string = `${home_abb} vs. ${away_abb}`;
-        const game:game = {
-            id: row.id,
-            season: row.season,
-            date: row.date,
-            home_id: row.home_id,
-            away_id: row.away_id,
-            home_score: row.home_score,
-            away_score: row.away_score,
-            matchup: matchup
-        }
-        schedule.push(game);
-    });
-    const timestamp:Date = new Date();
-    const last_updated:string = timestamp.toLocaleString();
-    // sort schedule by date
-    schedule.sort((a, b) => (new Date(b.date) as any) - (new Date(a.date) as any));
-    const data_obj:data_obj = {
-        players: players,
-        teams: teams,
-        schedule: schedule,
-        meta: {
-            seasons: seasons,
-            last_updated: last_updated,
-            to_date: null
-        }
-    };
-    write(data_obj, '../static-app/src/postgres_data.json');
-    pool.end();
-}).catch(err => {
-    console.log(err);
 });
