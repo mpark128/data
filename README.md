@@ -12,8 +12,11 @@ data.ts
   I created a Pool (db.ts) that connected to nba_db (my db for this app), and created an object, which is then written into a json file. 
 
 Postgres Database structure:    
+
   DATABASE:   nba_db
+
   TABLES:
+  
     player:   id (INT),
               first_name (CHARVAR),
               last_name (CHARVAR),
@@ -30,6 +33,7 @@ Postgres Database structure:
               from_year (SMALLINT),
               to_year (SMALLINT),
               slug (CHARVAR)
+    
     team:     id (INT),
               name (CHARVAR),
               city (CHARVAR),
@@ -37,6 +41,7 @@ Postgres Database structure:
               conference (conference_type),
               division (division_type),
               slug (CHARVAR)
+    
     game:     id (INT),
               season (CHARVAR),
               date (DATE),
@@ -44,6 +49,7 @@ Postgres Database structure:
               away_id (INT),
               home_score (SMALLINT),
               away_score (SMALLINT)
+   
     gamelog:  game_id (INT),
               player_id (INT),
               team_id (INT),
@@ -69,10 +75,13 @@ Postgres Database structure:
               pf (SMALLINT), 
               plus_minus (SMALLINT), 
               fantasy_pts (REAL)
+  
   TYPES:
+ 
     conference_type:
       LABEL:  Western,
               Eastern
+
     division_type:
       LABEL:  Atlantic, 
               Central, 
@@ -80,6 +89,7 @@ Postgres Database structure:
               Northwest, 
               Pacific, 
               Southwest
+
     position_type:
       LABEL:  G, 
               F,
