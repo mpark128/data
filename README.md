@@ -4,16 +4,18 @@ This is the backend work for https://mpark128.github.io/static-app/.
 Because github pages only allows static pages, I wrote a json object file into the src folder of my react app that contains all the relevant data needed for the page to run successfully. 
 This codebase is all the backend work to populate my postgres database as well as to write the json file. 
 
-update_db.ts
+**update_db.ts
+**
   This is the file used to retrieve data from nba_api (https://github.com/swar/nba_api).
   I fetched data from various nba_api endpoints that is used to populate the database. 
 
   
-data.ts
+**data.ts
+**
   This is the file used to write postgres_data.json into the src folder in my static-app (https://github.com/mpark128/static-app).
   I created a Pool (db.ts) that connected to nba_db (my db for this app), and created an object, which is then written into a json file. 
 
-Postgres Database structure:    
+**Postgres Database structure:  **  
 
   DATABASE:   nba_db
 
