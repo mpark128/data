@@ -1,7 +1,7 @@
 import {pool} from './db';
 import { QueryResult } from 'pg';
-import {boxscore, player, team, game, Player, Gamelog, data_obj} from './types';
-import {get_players, write} from './functions';
+import {boxscore, player, team, game, Player, Gamelog, data_obj, gamelog} from './types';
+import {write} from './functions';
 
 const db_query = (query:string, values:any) => {
     return new Promise<QueryResult>((resolve, reject) => {
@@ -17,7 +17,7 @@ const db_query = (query:string, values:any) => {
 
 let players:player[] = [];
 let teams:team[] = [];
-let schedule:game[] = [];
+let games:game[] = [];
 let seasons:string[] = [];
 db_query('SELECT * FROM player', []).then(data => {
     let rows = data.rows;
@@ -44,7 +44,8 @@ db_query('SELECT * FROM player', []).then(data => {
             row.draft_number, 
             row.from_year, 
             row.to_year, 
-            row.slug
+            row.slug,
+            row.is_active
         );
         players_db.push(player);
     });
@@ -85,7 +86,61 @@ db_query('SELECT * FROM player', []).then(data => {
             );
             gamelogs_db.push(gamelog);
         });
-        players = get_players(players_db, gamelogs_db);
+        players_db.forEach(p => {
+            let gamelogs:gamelog[] = [];
+            gamelogs_db.forEach(g => {
+                if (p.id === g.player_id) {
+                    const gamelog:gamelog = {
+                        game_id: g.game_id,
+                        team_id: g.team_id,
+                        games_played: g.stats.games_played,
+                        minutes: g.stats.minutes,
+                        fgm: g.stats.fgm,
+                        fga: g.stats.fga,
+                        fg_pct: g.stats.fg_pct,
+                        ftm: g.stats.ftm,
+                        fta: g.stats.fta,
+                        ft_pct: g.stats.ft_pct,
+                        fg3m: g.stats.fg3m,
+                        fg3a: g.stats.fg3a,
+                        fg3_pct: g.stats.fg3_pct,
+                        pts: g.stats.pts,
+                        oreb: g.stats.oreb,
+                        dreb: g.stats.dreb,
+                        reb: g.stats.reb,
+                        ast: g.stats.ast,
+                        stl: g.stats.stl,
+                        blk: g.stats.blk,
+                        tov: g.stats.tov,
+                        pf: g.stats.pf,
+                        plus_minus: g.stats.plus_minus,
+                        fantasy_pts: g.stats.fantasy_pts
+                    };
+                    gamelogs.push(gamelog);
+                }
+            });
+            const player:player = {
+                id: p.id,
+                first_name: p.first_name,
+                last_name: p.last_name,
+                slug: p.slug,
+                team_id: p.team_id,
+                jsy_number: p.jsy_number,
+                position: p.position,
+                height_inches: p.height_inches,
+                weight_lbs: p.weight_lbs,
+                last_attended: p.last_attended,
+                country: p.country,
+                draft_year: p.draft_year,
+                draft_round: p.draft_round,
+                draft_number: p.draft_number,
+                from_year: p.from_year,
+                to_year: p.to_year,
+                is_active: p.is_active,
+                gamelogs: gamelogs,
+            };
+            players.push(player);
+        });
         db_query('SELECT * FROM team', []).then(data => {
             rows = data.rows;
             rows.forEach(row => {
@@ -134,16 +189,18 @@ db_query('SELECT * FROM player', []).then(data => {
                         away_score: row.away_score,
                         matchup: matchup
                     }
-                    schedule.push(game);
+                    games.push(game);
                 });
                 const timestamp:Date = new Date();
                 const last_updated:string = timestamp.toLocaleString();
                 // sort schedule by date
-                schedule.sort((a, b) => (new Date(b.date) as any) - (new Date(a.date) as any));
+                games.sort((a, b) => (new Date(b.date) as any) - (new Date(a.date) as any));
+                players.sort((a, b) => a.last_name.localeCompare(b.last_name));
+                seasons.sort((a, b) => b.localeCompare(a));
                 const data_obj:data_obj = {
                     players: players,
                     teams: teams,
-                    schedule: schedule,
+                    games: games,
                     meta: {
                         seasons: seasons,
                         last_updated: last_updated,

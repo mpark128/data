@@ -16,7 +16,7 @@ var Team = /** @class */ (function () {
 exports.Team = Team;
 ;
 var Player = /** @class */ (function () {
-    function Player(id, first_name, last_name, team_id, jsy_number, position, height_inches, weight_lbs, last_attended, country, draft_year, draft_round, draft_number, from_year, to_year, slug) {
+    function Player(id, first_name, last_name, team_id, jsy_number, position, height_inches, weight_lbs, last_attended, country, draft_year, draft_round, draft_number, from_year, to_year, slug, is_active) {
         this.id = id;
         this.first_name = first_name;
         this.last_name = last_name;
@@ -33,6 +33,7 @@ var Player = /** @class */ (function () {
         this.from_year = from_year;
         this.to_year = to_year;
         this.slug = slug;
+        this.is_active = is_active;
     }
     return Player;
 }());

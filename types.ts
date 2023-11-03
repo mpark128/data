@@ -23,6 +23,18 @@ export type boxscore = {
     fantasy_pts:number
 };
 
+export type stats = {
+    id:number,
+    counting_stats: {
+        totals:boxscore,
+        avgs:boxscore
+    },
+    z_score: {
+        totals:boxscore,
+        avgs:boxscore
+    }
+};
+
 export type team = {
     id:number,
     name:string|null,
@@ -78,14 +90,7 @@ export type player = {
     draft_number:number|null,
     from_year:number,
     to_year:number,
-    stats: {
-        totals:boxscore,
-        avgs:boxscore
-    },
-    z_score: {
-        totals:boxscore,
-        avgs:boxscore
-    },
+    is_active:boolean,
     gamelogs:gamelog[],
 };
 
@@ -103,7 +108,7 @@ export type game = {
 export type data_obj = {
     players: player[],
     teams: team[],
-    schedule: game[],
+    games: game[],
     meta: {
         seasons:string[],
         last_updated:string,
@@ -156,6 +161,7 @@ export class Player {
     from_year:number;
     to_year:number;
     slug:string;
+    is_active:boolean;
 
     constructor(
         id:number,
@@ -173,7 +179,8 @@ export class Player {
         draft_number:number|null,
         from_year:number,
         to_year:number,
-        slug:string
+        slug:string,
+        is_active:boolean
     ) {
         this.id = id;
         this.first_name = first_name;
@@ -191,6 +198,7 @@ export class Player {
         this.from_year = from_year;
         this.to_year = to_year;
         this.slug = slug;
+        this.is_active = is_active;
     }
 };
 

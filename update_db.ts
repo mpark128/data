@@ -3,7 +3,7 @@ import {boxscore, Team, Player, Game, Gamelog} from './types';
 import {pool} from './db';
 
 
-const season:string = '2022-23';
+const season:string = '2023-24';
 let teams:Team[] = [];
 let players:Player[] = [];
 let games:Game[] = [];
@@ -98,7 +98,7 @@ fetch(pindex_url, {headers: headerData})
                             team.id
                         ], (err, res) => {
                             if (err) {
-                                console.log(err);
+                                console.log(`team update: ${err}`);
                             } 
                         });
                     } else {
@@ -112,7 +112,7 @@ fetch(pindex_url, {headers: headerData})
                             team.slug
                         ], (err, res) => {
                             if (err) {
-                                console.log(err);
+                                console.log(`team insert: ${err}`);
                             } 
                         });
                     }
@@ -129,6 +129,12 @@ fetch(pindex_url, {headers: headerData})
         const height:string = row[headers.indexOf('HEIGHT')];
         const height_array:string[] = height.split('-');
         const height_inches:number = (parseInt(height_array[0]) * 12) + parseInt(height_array[1]);
+        let is_active:boolean;
+        if (row[headers.indexOf('IS_DEFUNCT')] === 0) {
+            is_active = true;
+        } else {
+            is_active = false;
+        }
         const player = new Player(
             parseInt(row[headers.indexOf('PERSON_ID')]),
             row[headers.indexOf('PLAYER_FIRST_NAME')],
@@ -145,7 +151,8 @@ fetch(pindex_url, {headers: headerData})
             row[headers.indexOf('DRAFT_NUMBER')],
             parseInt(row[headers.indexOf('FROM_YEAR')]),
             parseInt(row[headers.indexOf('TO_YEAR')]),
-            row[headers.indexOf('PLAYER_SLUG')]
+            row[headers.indexOf('PLAYER_SLUG')],
+            is_active
         );
         players.push(player);
         pool.query('SELECT * FROM player WHERE id=$1', [player.id], (err, res) => {
@@ -153,7 +160,7 @@ fetch(pindex_url, {headers: headerData})
                 console.log(err);
             } else {
                 if (res.rows[0]) {
-                    pool.query(`UPDATE player SET first_name=$1, last_name=$2, team_id=$3, jsy_number=$4, height_inches=$5, weight_lbs=$6, last_attended=$7, draft_year=$8, draft_round=$9, draft_number=$10, from_year=$11, to_year=$12, country=$13, position=$14, slug=$15 WHERE id=${player.id}`, [
+                    pool.query('UPDATE player SET first_name=$1, last_name=$2, team_id=$3, jsy_number=$4, height_inches=$5, weight_lbs=$6, last_attended=$7, draft_year=$8, draft_round=$9, draft_number=$10, from_year=$11, to_year=$12, country=$13, position=$14, slug=$15, is_active=$16 WHERE id=$17', [
                         player.first_name, 
                         player.last_name, 
                         player.team_id, 
@@ -168,14 +175,16 @@ fetch(pindex_url, {headers: headerData})
                         player.to_year, 
                         player.country, 
                         player.position, 
-                        player.slug
+                        player.slug,
+                        player.is_active,
+                        player.id
                     ], (err, res) => {
                         if (err) {
-                            console.log(err); 
+                            console.log(`player update: ${err}`); 
                         } 
                     });
                 } else {
-                    pool.query('INSERT INTO player(id, first_name, last_name, team_id, jsy_number, height_inches, weight_lbs, last_attended, draft_year, draft_round, draft_number, from_year, to_year, country, position, slug) VALUES($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16)', [
+                    pool.query('INSERT INTO player(id, first_name, last_name, team_id, jsy_number, height_inches, weight_lbs, last_attended, draft_year, draft_round, draft_number, from_year, to_year, country, position, slug, is_active) VALUES($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16, $17)', [
                         player.id, 
                         player.first_name, 
                         player.last_name, 
@@ -191,10 +200,11 @@ fetch(pindex_url, {headers: headerData})
                         player.to_year, 
                         player.country, 
                         player.position, 
-                        player.slug
+                        player.slug,
+                        player.is_active
                     ], (err, res) => {
                         if (err) {
-                            console.log(err);
+                            console.log(`player insert: ${err}`);
                         } 
                     });
                 }
@@ -249,7 +259,7 @@ fetch(pindex_url, {headers: headerData})
                                     game.id
                                 ], (err, res) => {
                                     if (err) {
-                                        console.log(`update error: ${err}`);
+                                        console.log(`game update: ${err}`);
                                     } 
                                 });
                             } else {
@@ -263,7 +273,7 @@ fetch(pindex_url, {headers: headerData})
                                     game.away_score
                                 ], (err, res) => {
                                     if (err) {
-                                        console.log(`insert error: ${err}`);
+                                        console.log(`game insert: ${err}`);
                                     } 
                                 });
                             }
@@ -399,11 +409,11 @@ fetch(pindex_url, {headers: headerData})
                             gamelog.player_id
                         ], (err, res) => {
                             if (err) {
-                                console.log(err);
+                                console.log(`gamelog update: ${err}`);
                             } 
                         });
                     } else {
-                        pool.query('INSERT INTO gamelog(game_id, player_id, team_id, games_played, minutes, fgm, fga, fg_pct, ftm, fta, ft_pct, fg3m, fg3a, fg3_pct, pts, oreb, dreb, reb, ast, stl, blk, tov, pf, plus_minus, fantasy_pts) VALUES($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16, $17, $18, $19, $20, $21, $22, $23, $24)', [
+                        pool.query('INSERT INTO gamelog(game_id, player_id, team_id, games_played, minutes, fgm, fga, fg_pct, ftm, fta, ft_pct, fg3m, fg3a, fg3_pct, pts, oreb, dreb, reb, ast, stl, blk, tov, pf, plus_minus, fantasy_pts) VALUES($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16, $17, $18, $19, $20, $21, $22, $23, $24, $25)', [
                             gamelog.game_id,
                             gamelog.player_id,
                             gamelog.team_id, 
@@ -431,7 +441,7 @@ fetch(pindex_url, {headers: headerData})
                             gamelog.stats.fantasy_pts
                         ], (err, res) => {
                             if (err) {
-                                console.log(err);
+                                console.log(`gamelog insert: ${err}`);
                             } 
                         });
                     }
